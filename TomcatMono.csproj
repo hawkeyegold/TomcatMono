@@ -4,6 +4,18 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-  </PropertyGroup>
+		<RootNamespace>TomcatMono</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Folder Include="Math\" />
+		<Folder Include="Persist\" />
+		<Folder Include="Utils\" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4.1" />
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
+  </ItemGroup>
 
 </Project>

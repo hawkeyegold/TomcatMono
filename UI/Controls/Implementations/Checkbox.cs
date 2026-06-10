@@ -1,0 +1,130 @@
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using TomcatMono.Input;
+
+namespace TomcatMono.UI.Controls.Implementations {
+	public class Checkbox : Control {
+		public delegate ref bool RefBoolAccessor();
+
+		private readonly Texture2D _pixel;
+		private readonly SpriteFont _font;
+		private readonly string _labelText;
+
+		private CheckOreintation _orientation = CheckOreintation.LeftCheck;
+		private bool _checked;
+		private int _boxSize;
+		private int _spacing;
+
+		private bool _isBound;
+		private RefBoolAccessor? _boundValue;
+
+		public Color CheckedColor = Color.SteelBlue;
+		public Color UncheckedColor = Color.White;
+		public Color LabelColor = Color.White;
+
+		public CheckOreintation Orientation { get { return _orientation; } set { _orientation = value; } }
+		public bool Checked { get { return _checked; } set { _checked = value; } }
+		public int BoxSize {
+			get { return _boxSize; }
+			set { _boxSize = value; SetControlSize(); }
+		}
+		public int Spacing {
+			get { return _spacing; }
+			set { _spacing = value; SetControlSize(); }
+		}
+
+		public Checkbox(int left, int top, int boxSize, Texture2D pixel, SpriteFont font, string label) : base(left, top, boxSize, boxSize) {
+			_spacing = 4;
+			_pixel = pixel;
+			_font = font;
+			_labelText = label;
+			_boxSize = boxSize;
+			SetControlSize();
+		}
+
+		public void Bind(RefBoolAccessor accessor) {
+			_boundValue = accessor;
+			_isBound = true;
+			_checked = _boundValue(); // sync UI to data
+		}
+
+		public override void SetBounds(int left, int top, int width, int height) {
+			_left = left;
+			_top = top;
+			SetControlSize();
+		}
+
+		private void SetControlSize() {
+			int labelWidth = (int)_font.MeasureString(_labelText).X;
+			_width = _boxSize + _spacing + labelWidth;
+			_height = _boxSize;
+		}
+
+		public override bool HandleInput(InputManager input) {
+			if (!visible) { return false; }
+
+			Point pos = input.Position;
+
+			if (AbsoluteBounds.Contains(pos) && input.LeftClicked(AbsoluteBounds)) {
+				_checked = !_checked;
+
+				if (_isBound) {
+					ref bool target = ref _boundValue!();
+					target = _checked;
+				}
+
+				return true;
+			}
+			return false;
+		}
+
+		public override void Update(GameTime gameTime) {
+			if (_isBound) {
+				bool bound = _boundValue!();
+				if (bound != _checked) {
+					_checked = bound;
+				}
+			}
+		}
+
+		public override void Draw(SpriteBatch spriteBatch) {
+			if (!visible) { return; }
+
+			Rectangle box;
+			Vector2 labelPos;
+
+			Rectangle abs = AbsoluteBounds;
+
+			switch (_orientation) {
+				default:
+					labelPos = new Vector2(abs.X + _boxSize + _spacing, abs.Y);
+					box = new Rectangle(abs.X, abs.Y, _boxSize, _boxSize);
+					break;
+				case CheckOreintation.RightCheck:
+					labelPos = new Vector2(abs.X, abs.Y);
+					box = new Rectangle(abs.Right - _boxSize, abs.Y, _boxSize, _boxSize);
+					break;
+			}
+
+			spriteBatch.Draw(_pixel, box, UncheckedColor);
+
+			if (_checked) {
+				int innerCheckMargin = 3;
+				Rectangle inner = new Rectangle(
+						box.X + innerCheckMargin,
+						box.Y + innerCheckMargin,
+						box.Width - innerCheckMargin * 2,
+						box.Height - innerCheckMargin * 2
+				);
+				spriteBatch.Draw(_pixel, inner, CheckedColor);
+			}
+
+			spriteBatch.DrawString(_font, _labelText, labelPos, LabelColor);
+		}
+	}
+
+	public enum CheckOreintation {
+		LeftCheck,
+		RightCheck
+	}
+}
