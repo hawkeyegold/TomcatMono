@@ -39,7 +39,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 			tabs.Add(tab);
 			pages.Add(page);
 
-			pages[newIndex].IsVisible = newIndex == selectedIndex ? true : false;
+			pages[newIndex].Visible = newIndex == selectedIndex ? true : false;
 			tabs[newIndex].IsSelected = newIndex == selectedIndex ? true : false;
 		}
 
@@ -56,7 +56,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 		private void UpdateSelection() {
 			for (int i = 0; i < tabs.Count; i++) {
 				tabs[i].IsSelected = (i == selectedIndex);
-				pages[i].IsVisible = (i == selectedIndex);
+				pages[i].Visible = (i == selectedIndex);
 			}
 		}
 
@@ -84,7 +84,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public override void Update(GameTime gameTime) {
-			if (!visible) { return; }
+			if (!Visible) { return; }
 			for (int i = 0; i < tabs.Count; i++) {
 				tabs[i].Update(gameTime);
 			}
@@ -92,7 +92,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public override void Draw(SpriteBatch spriteBatch) {
-			if (!visible) { return; }
+			if (!Visible) { return; }
 			for (int i = 0; i < tabs.Count; i++) {
 				tabs[i].Draw(spriteBatch);
 			}
@@ -100,7 +100,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public override bool HandleInput(InputManager input) {
-			if (!visible) { return false; }
+			if (!Visible) { return false; }
 
 			// Tabs get first chance
 			for (int i = tabs.Count - 1; i >= 0; i--) {

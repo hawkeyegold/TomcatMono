@@ -25,15 +25,15 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public override void SetBounds(int left, int top, int width, int height) {
-			_left = left;
-			_top = top;
-			_height = height;
+			Left = left;
+			Top = top;
+			Height = height;
 			SetControlWidth();
 		}
 
 		private void SetControlWidth() {
 			int textWidth = (int)_font.MeasureString(_text).X;
-			_width = textWidth;
+			Width = textWidth;
 		}
 
 		public override bool HandleInput(InputManager input) {
@@ -41,7 +41,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public override void Draw(SpriteBatch spriteBatch) {
-			if (!visible) { return; }
+			if (!Visible) { return; }
 
 			Rectangle abs = AbsoluteBounds;
 			Vector2 pos = new Vector2(abs.X, abs.Y);

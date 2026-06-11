@@ -12,7 +12,6 @@ namespace TomcatMono.UI.Controls.Implementations {
 		private bool _hovered;
 		private bool _pressed;
 
-		public bool Visible { get; set; }
 		public Color HoverColor = new Color(70, 70, 70);
 		public Color PressedColor = new Color(30, 30, 30);
 		public Color TextColor = Color.White;
@@ -29,7 +28,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public override bool HandleInput(InputManager input) {
-			if (!visible) { return false; }
+			if (!Visible) { return false; }
 
 			Point pos = input.Position;
 			_hovered = AbsoluteBounds.Contains(pos);
@@ -53,7 +52,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public override void Draw(SpriteBatch spriteBatch) {
-			if (!visible) { return; }
+			if (!Visible) { return; }
 
 			Color bg = BackgroundColor;
 			if (_pressed) bg = PressedColor;

@@ -157,7 +157,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public override bool HandleInput(InputManager input) {
-			if (!visible) { return false; }
+			if (!Visible) { return false; }
 
 			_debugMousePos = input.Position;
 			Point pos = input.Position;
@@ -272,7 +272,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 
 
 		public override void Draw(SpriteBatch spriteBatch) {
-			if (!visible) { return; }
+			if (!Visible) { return; }
 
 			// collapsed
 			DropDownItem drawItem = _items.Count > 0 ? _items[_selectedIndex].Clone() : new DropDownItem("");

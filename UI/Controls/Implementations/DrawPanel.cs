@@ -11,7 +11,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public override void Draw(SpriteBatch spriteBatch) {
-			if (!visible) return;
+			if (!Visible) return;
 
 			// Use the inherited BackgroundColor from Control
 			spriteBatch.Draw(_pixel, AbsoluteBounds, BackgroundColor);

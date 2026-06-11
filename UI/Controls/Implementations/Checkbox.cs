@@ -49,19 +49,19 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public override void SetBounds(int left, int top, int width, int height) {
-			_left = left;
-			_top = top;
+			Left = left;
+			Top = top;
 			SetControlSize();
 		}
 
 		private void SetControlSize() {
 			int labelWidth = (int)_font.MeasureString(_labelText).X;
-			_width = _boxSize + _spacing + labelWidth;
-			_height = _boxSize;
+			Width = _boxSize + _spacing + labelWidth;
+			Height = _boxSize;
 		}
 
 		public override bool HandleInput(InputManager input) {
-			if (!visible) { return false; }
+			if (!Visible) { return false; }
 
 			Point pos = input.Position;
 
@@ -88,7 +88,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public override void Draw(SpriteBatch spriteBatch) {
-			if (!visible) { return; }
+			if (!Visible) { return; }
 
 			Rectangle box;
 			Vector2 labelPos;

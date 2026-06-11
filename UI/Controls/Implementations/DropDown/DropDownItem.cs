@@ -38,7 +38,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 			return clone;
 		}
 		public override bool HandleInput(InputManager input) {
-			if (!visible) { return false; }
+			if (!Visible) { return false; }
 
 			Point pos = input.Position;
 
@@ -52,7 +52,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public override void Draw(SpriteBatch spriteBatch) {
-			if (!visible) { return; }
+			if (!Visible) { return; }
 
 			Rectangle abs = AbsoluteBounds;
 
