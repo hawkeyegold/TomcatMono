@@ -12,10 +12,11 @@ namespace TomcatMono.UI.Controls.Implementations {
 		private bool _hovered;
 		private bool _pressed;
 
+		public bool Visible { get; set; }
 		public Color HoverColor = new Color(70, 70, 70);
 		public Color PressedColor = new Color(30, 30, 30);
 		public Color TextColor = Color.White;
-
+		
 		public event Action<Button>? OnClick;
 
 		public Button(
