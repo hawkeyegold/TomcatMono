@@ -135,16 +135,20 @@ namespace TomcatMono.UI.Controls {
 			_parent = value;
 			if (_parent != null) { _parent.AddChild(this); }
 		}
+		// private helper method SetParent uses to ensure that the parent/child relationships
+		// are bidirectional
 		private void AddChild(Control? candidate) {
 			if (candidate == null) { return; }
 			// Prevent duplicates
 			if (_children.Contains(candidate)) { return; }
-			// Ensure the child is not already parented elsewhere
+			// If the child already has a parent, detach it
 			if (candidate._parent != null && candidate._parent != this) {
 				candidate._parent.RemoveChild(candidate);
 			}
 			_children.Add(candidate);
 		}
+		
+		//Private helper method SetParent uses to break a child/parent relationship 
 		private void RemoveChild(Control? child) {
 			if (child == null) { return; }
 			if (_children.Contains(child)) { _children.Remove(child);	}
