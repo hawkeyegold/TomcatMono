@@ -9,7 +9,9 @@ public sealed class TabPage {
 	private int _fixedWidth;
 	private DrawPanel _page;
 	private bool _selected;
+	//private Label _headerLabel;
 
+	public Label HeaderLabel { get; set; } = null!;
 	public string Text { get { return _text; } set { _text = value; } }
 	public bool AutoSize { get { return _autoSize; } set { _autoSize = value; } }
 	public int FixedWidth { get { return _fixedWidth; } set { _fixedWidth = value; } }
@@ -17,13 +19,13 @@ public sealed class TabPage {
 
 	public DrawPanel Page { get { return _page; } set { _page = value; } }
 	public bool Selected { get { return _selected; } internal set { _selected = value; } }
-
-	public TabPage(string text) {
+	public TabPage(string text) : this(text, null) { }
+	public TabPage(string text, DrawPanel? panel) {
 		_text = text;
 		_autoSize = true;
 		_dynamicWidth = 0;
 		_fixedWidth = 50;
 		_selected = false;
-		_page = new DrawPanel();
+		_page = (panel != null) ? panel : new DrawPanel();
 	}
 }

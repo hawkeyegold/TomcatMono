@@ -14,26 +14,22 @@ namespace TomcatMono.UI.Controls.Implementations {
 			get { return _text; }
 			set {
 				_text = value;
-				SetControlWidth();
+				// NO geometry mutation here
 			}
 		}
 
-		public Label(int left, int top, int height, SpriteFont font, string text) : base(left, top, 0, height) {
+		public bool AutoSize { get; set; } = false;
+
+		public Label(int left, int top, int width, int height, SpriteFont font, string text)
+				: base(left, top, width, height) {
 			_font = font;
 			_text = text;
-			SetControlWidth();
 		}
 
-		public override void SetBounds(int left, int top, int width, int height) {
-			Left = left;
-			Top = top;
-			Height = height;
-			SetControlWidth();
-		}
-
-		private void SetControlWidth() {
+		public void ResizeToFitText() {
 			int textWidth = (int)_font.MeasureString(_text).X;
-			Width = textWidth;
+			int textHeight = _font.LineSpacing;
+			SetBounds(Left, Top, textWidth, textHeight);
 		}
 
 		public override bool HandleInput(InputManager input) {
@@ -41,7 +37,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public override void Draw(SpriteBatch spriteBatch) {
-			if (!Visible) { return; }
+			if (!Visible) return;
 
 			Rectangle abs = AbsoluteBounds;
 			Vector2 pos = new Vector2(abs.X, abs.Y);
@@ -49,4 +45,5 @@ namespace TomcatMono.UI.Controls.Implementations {
 			spriteBatch.DrawString(_font, _text, pos, Color);
 		}
 	}
+
 }

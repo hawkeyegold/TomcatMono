@@ -7,6 +7,8 @@ namespace TomcatMono.Input {
 
 		private MouseState _currentState;
 		private MouseState _previousState;
+		private KeyboardState _currentKeyboard;
+		private KeyboardState _previousKeyboard;
 
 		// --- Dragging state (new system) ---
 		private Guid? _dragOwner = null;
@@ -31,6 +33,8 @@ namespace TomcatMono.Input {
 			_currentState = Mouse.GetState();
 			_previousState = _currentState;
 			_dragCurrent = Position;
+			_currentKeyboard = Keyboard.GetState();
+			_previousKeyboard = _currentKeyboard;
 		}
 		public bool IsDragOwner(Guid id) { return _dragOwner == id; }
 		// --- Explicit drag lifecycle ---
@@ -52,7 +56,8 @@ namespace TomcatMono.Input {
 		public void Update() {
 			_previousState = _currentState;
 			_currentState = Mouse.GetState();
-
+			_previousKeyboard = _currentKeyboard;
+			_currentKeyboard = Keyboard.GetState();
 			// Update drag position if dragging
 			if (_dragState != DraggingState.None) {
 				_dragCurrent = Position;
@@ -103,6 +108,20 @@ namespace TomcatMono.Input {
 					_currentState.RightButton == ButtonState.Released;
 
 			return pressedInside && releasedInside;
+		}
+		// Keyboard helpers
+		public bool IsKeyDown(Keys key) {
+			return _currentKeyboard.IsKeyDown(key);
+		}
+
+		public bool IsKeyJustPressed(Keys key) {
+			return _currentKeyboard.IsKeyDown(key) &&
+						 _previousKeyboard.IsKeyUp(key);
+		}
+
+		public bool IsKeyReleased(Keys key) {
+			return _currentKeyboard.IsKeyUp(key) &&
+						 _previousKeyboard.IsKeyDown(key);
 		}
 	}
 

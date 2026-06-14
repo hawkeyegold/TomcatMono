@@ -8,9 +8,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Folder Include="Math\" />
 		<Folder Include="Persist\" />
-		<Folder Include="Utils\" />
 	</ItemGroup>
 
   <ItemGroup>

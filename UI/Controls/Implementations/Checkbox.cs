@@ -22,18 +22,34 @@ namespace TomcatMono.UI.Controls.Implementations {
 		public Color UncheckedColor = Color.White;
 		public Color LabelColor = Color.White;
 
-		public CheckOreintation Orientation { get { return _orientation; } set { _orientation = value; } }
-		public bool Checked { get { return _checked; } set { _checked = value; } }
-		public int BoxSize {
-			get { return _boxSize; }
-			set { _boxSize = value; SetControlSize(); }
-		}
-		public int Spacing {
-			get { return _spacing; }
-			set { _spacing = value; SetControlSize(); }
+		public CheckOreintation Orientation {
+			get => _orientation;
+			set => _orientation = value;
 		}
 
-		public Checkbox(int left, int top, int boxSize, Texture2D pixel, SpriteFont font, string label) : base(left, top, boxSize, boxSize) {
+		public bool Checked {
+			get => _checked;
+			set => _checked = value;
+		}
+
+		public int BoxSize {
+			get => _boxSize;
+			set {
+				_boxSize = value;
+				SetControlSize();
+			}
+		}
+
+		public int Spacing {
+			get => _spacing;
+			set {
+				_spacing = value;
+				SetControlSize();
+			}
+		}
+
+		public Checkbox(int left, int top, int boxSize, Texture2D pixel, SpriteFont font, string label)
+				: base(left, top, boxSize, boxSize) {
 			_spacing = 4;
 			_pixel = pixel;
 			_font = font;
@@ -48,20 +64,14 @@ namespace TomcatMono.UI.Controls.Implementations {
 			_checked = _boundValue(); // sync UI to data
 		}
 
-		public override void SetBounds(int left, int top, int width, int height) {
-			Left = left;
-			Top = top;
-			SetControlSize();
-		}
-
 		private void SetControlSize() {
 			int labelWidth = (int)_font.MeasureString(_labelText).X;
-			Width = _boxSize + _spacing + labelWidth;
-			Height = _boxSize;
+			Width = _boxSize + _spacing + labelWidth; // calls Control.SetBounds
+			Height = _boxSize;                         // calls Control.SetBounds
 		}
 
 		public override bool HandleInput(InputManager input) {
-			if (!Visible) { return false; }
+			if (!Visible) return false;
 
 			Point pos = input.Position;
 
@@ -88,18 +98,19 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public override void Draw(SpriteBatch spriteBatch) {
-			if (!Visible) { return; }
+			if (!Visible) return;
+
+			Rectangle abs = AbsoluteBounds;
 
 			Rectangle box;
 			Vector2 labelPos;
-
-			Rectangle abs = AbsoluteBounds;
 
 			switch (_orientation) {
 				default:
 					labelPos = new Vector2(abs.X + _boxSize + _spacing, abs.Y);
 					box = new Rectangle(abs.X, abs.Y, _boxSize, _boxSize);
 					break;
+
 				case CheckOreintation.RightCheck:
 					labelPos = new Vector2(abs.X, abs.Y);
 					box = new Rectangle(abs.Right - _boxSize, abs.Y, _boxSize, _boxSize);

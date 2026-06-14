@@ -5,7 +5,9 @@ namespace TomcatMono.UI.Controls {
 	public abstract class Panel : Control {
 
 		protected Panel(int left, int top, int width, int height)
-				: base(left, top, width, height) { }
+				: base(null, left, top, width, height) { }
+		protected Panel(Rectangle? virtualBounds,int left, int top, int width, int height)
+				: base(virtualBounds,left, top, width, height) { }
 
 		// Called when Panel becomes the topmost Panel in the PanelStack.
 		public virtual void OnActivated() { }
@@ -24,8 +26,8 @@ namespace TomcatMono.UI.Controls {
 		public virtual void OnFocusLost() { }
 
 		// Optional: override if Panel needs layout behavior
-		protected override void LayoutSelf(int screenWidth, int screenHeight) {
-			// Default: do nothing
-		}
+		//protected override void LayoutSelf(int screenWidth, int screenHeight) {
+		//	// Default: do nothing
+		//}
 	}
 }

@@ -12,6 +12,10 @@ namespace TomcatMono.UI.Controls.Implementations {
 				: base(left, top, width, height) {
 			_pixel = pixel;
 		}
+		public DrawPanel(Rectangle? virtualBounds, int left, int top, int width, int height, Texture2D pixel)
+				: base(virtualBounds,left, top, width, height) {
+			_pixel = pixel;
+		}
 
 		// NOTE:
 		// No Draw override.
