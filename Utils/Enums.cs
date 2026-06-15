@@ -7,4 +7,8 @@
 		Top = 4,
 		Bottom = 8
 	}
+	public enum TextAlignment {
+		TopLeft,
+		Center
+	}
 }

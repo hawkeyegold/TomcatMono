@@ -6,6 +6,12 @@ namespace TomcatMono.UI.Controls {
 	public abstract partial class Control {
 
 		#region Bounds
+		public void SetVirtualBounds(Rectangle? bounds) {
+			bool changed = _virtualBounds != bounds;
+			_virtualBounds = bounds;
+			InternalBoundsChanged(changed);
+		}
+
 		public void SetBounds(int left, int top, int width, int height) {
 			bool changed = _left != left || _top != top || _width != width || _height != height;
 
@@ -13,14 +19,16 @@ namespace TomcatMono.UI.Controls {
 			_top = top;
 			_width = width;
 			_height = height;
+			InternalBoundsChanged(changed);
+		}
 
+		private void InternalBoundsChanged(bool changed) {
 			if (changed) {
 				BoundsChanged(); // this is probably not going to be needed most of the time in future implementations, we'll leave it in case we do
 				PrivateSetAnchors();
 				for (int i = 0; i < Children.Count; i++) {
 					_children[i].ApplyAnchoring();
 				}
-				// missing behavior!!!! -- tell children to 
 			}
 		}
 		#endregion

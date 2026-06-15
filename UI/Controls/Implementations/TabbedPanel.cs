@@ -36,6 +36,18 @@ namespace TomcatMono.UI.Controls.Implementations {
 			}
 		}
 		public DrawPanel? FooterPanel { get { return _footerPanel; } }
+		public int TabHeight {
+			get => _tabHeight;
+			set {
+				if (value < 0) value = 0;
+				_tabHeight = value;
+
+				// Re-layout internal panels
+				_tabsPanel.Height = _tabHeight;
+				ApplyContentArea();
+			}
+		}
+		public int TabSpacing { get { return _tabSpacing; } set { _tabSpacing = value; } }
 		public TabbedPanel(int left, int top, int width, int height)
 				: base(left, top, width, height) {
 			_tabs = new List<TabPage>();
@@ -97,10 +109,9 @@ namespace TomcatMono.UI.Controls.Implementations {
 					_font,
 					text
 			);
-
-
 			header.Parent = _tabsPanel;
 			header.AnchorType = AnchorType.Top | AnchorType.Left;
+			header.Alignment = TextAlignment.Center;
 
 			// Store the label on the TabPage
 			tab.HeaderLabel = header;
@@ -193,32 +204,38 @@ namespace TomcatMono.UI.Controls.Implementations {
 			if (!Visible)
 				return;
 
-			// Draw tab headers
+			// 1. Draw the full TabbedPanel background (entire control area-tabsheader)
+			Rectangle fullBounds = AbsoluteBounds;
+			Rectangle drawBounds= new Rectangle(
+				fullBounds.Left, 
+				fullBounds.Top+_tabHeight, 
+				fullBounds.Width, 
+				fullBounds.Height
+			);
+			spriteBatch.Draw(_pixel, drawBounds, BackgroundColor);
+
+			// 2. Draw tab headers (background + text)
 			for (int i = 0; i < _tabs.Count; i++) {
 				TabPage tab = _tabs[i];
 				Label header = tab.HeaderLabel;
 
 				Rectangle rect = header.AbsoluteBounds;
 
-				// Background for tab
 				Color bg = (i == _selectedIndex)
 						? _selectedTabColor
 						: _unselectedTabColor;
 
 				spriteBatch.Draw(_pixel, rect, bg);
-
-				// Draw the label (text)
 				header.Draw(spriteBatch);
 			}
 
-			// Draw the selected page
+			// 3. Draw the content area background
+			//Rectangle contentArea = ComputeContentArea();
+			//spriteBatch.Draw(_pixel, contentArea, BackgroundColor);
+
+			// 4. Draw the selected page (on top of content background)
 			if (_selectedIndex >= 0 && _selectedIndex < _tabs.Count) {
 				_tabs[_selectedIndex].Page.Draw(spriteBatch);
-			}
-
-			// Draw footer if present
-			if (_footerPanel != null) {
-				_footerPanel.Draw(spriteBatch);
 			}
 		}
 		public override bool HandleInput(InputManager input) {

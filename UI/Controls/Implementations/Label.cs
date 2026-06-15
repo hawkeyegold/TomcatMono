@@ -19,7 +19,13 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public bool AutoSize { get; set; } = false;
+		public TextAlignment Alignment { get; set; } = TextAlignment.Center;
 
+		public Label(int left, int top, int width, SpriteFont font, string text)
+				: base(left, top, width, 0) {
+			_font = font;
+			_text = text;
+		}
 		public Label(int left, int top, int width, int height, SpriteFont font, string text)
 				: base(left, top, width, height) {
 			_font = font;
@@ -42,8 +48,13 @@ namespace TomcatMono.UI.Controls.Implementations {
 			Rectangle abs = AbsoluteBounds;
 			Vector2 pos = new Vector2(abs.X, abs.Y);
 
+			if (Alignment == TextAlignment.Center) {
+				Vector2 size = _font.MeasureString(_text);
+				pos.X = abs.X + (abs.Width - size.X) / 2f;
+				pos.Y = abs.Y + (abs.Height - size.Y) / 2f;
+			}
+
 			spriteBatch.DrawString(_font, _text, pos, Color);
 		}
 	}
-
 }

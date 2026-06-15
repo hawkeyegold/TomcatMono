@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using TomcatMono.Graphics;
 
-namespace TomcatMono.UI.Controls.Implementations {
+namespace TomcatMono.UI.Controls {
 	public class DrawPanel : Panel {
 
 		private readonly Texture2D _pixel;

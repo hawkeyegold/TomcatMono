@@ -38,10 +38,6 @@ namespace TomcatMono.UI.Controls {
 			}
 		}
 
-		public void SetVirtualBounds(Rectangle? bounds) {
-			_virtualBounds = bounds;
-		}
-
 		public Color BackgroundColor {
 			get => _backgroundColor;
 			set => _backgroundColor = value;

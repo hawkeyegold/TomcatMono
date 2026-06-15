@@ -10,7 +10,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 
 		private string _text;
 		private bool _hovered;
-		private Color _textColor=Color.Black;
+		private Color _textColor = Color.Black;
 		private Color _hoverTextColor = Color.DarkSlateBlue;
 		private Color _hoverBackgroundColor = Color.SkyBlue;
 
@@ -21,12 +21,13 @@ namespace TomcatMono.UI.Controls.Implementations {
 		public Color HoverBackgroundColor { get => _hoverBackgroundColor; set => _hoverBackgroundColor = value; }
 
 		public DropDownItem(string text)
-				: base(0, 0, 0, 0) {
+						: base(0, 0, 0, 0) {
 			_pixel = PixelLibrary.WhitePixel;
 			_font = FontLibrary.ListFont;
 			_text = text;
-			base.BackgroundColor = Color.White;
+			BackgroundColor = Color.White;
 		}
+
 		public DropDownItem Clone() {
 			DropDownItem clone = new DropDownItem(_text);
 			clone.BackgroundColor = BackgroundColor;
@@ -37,6 +38,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 			clone.Height = Height;
 			return clone;
 		}
+
 		public override bool HandleInput(InputManager input) {
 			if (!Visible) { return false; }
 
@@ -56,20 +58,17 @@ namespace TomcatMono.UI.Controls.Implementations {
 
 			Rectangle abs = AbsoluteBounds;
 
-			// background and text color with hover state adjustments
-			Color bgColor = _hovered ? _hoverBackgroundColor : base.BackgroundColor;
+			Color bgColor = _hovered ? _hoverBackgroundColor : BackgroundColor;
 			Color txtColor = _hovered ? _hoverTextColor : _textColor;
 
 			spriteBatch.Draw(_pixel, abs, bgColor);
 
-			// text (centered vertically, clipped by width naturally)
 			int nudgeUp = 2;
 			int padLeft = 10;
-			float textY = (abs.Y + (abs.Height - _font.LineSpacing) / 2f)- nudgeUp;
+			float textY = (abs.Y + (abs.Height - _font.LineSpacing) / 2f) - nudgeUp;
 			Vector2 pos = new Vector2(abs.X + padLeft, textY);
 
 			spriteBatch.DrawString(_font, _text, pos, txtColor);
 		}
-
 	}
 }

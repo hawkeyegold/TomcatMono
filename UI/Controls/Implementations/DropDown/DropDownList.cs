@@ -18,7 +18,10 @@ namespace TomcatMono.UI.Controls.Implementations {
 		private Color _borderColor = Color.Black;
 		private int _borderThickness = 1;
 
-		// scrollbar support using New drag model for scrollbar
+		// popup as a real child control
+		private DrawPanel _popupPanel;
+
+		// scrollbar support
 		private Rectangle _scrollBarRect;
 		private readonly Guid _scrollbarDragId = Guid.NewGuid();
 		private int _dragStartOffset = 0;
@@ -27,17 +30,18 @@ namespace TomcatMono.UI.Controls.Implementations {
 		private RefStringAccessor? _boundValue;
 		private bool _isBound;
 
-		private Rectangle _popupBounds;
+		private Rectangle _popupBounds; // absolute popup bounds (for scissor + scrollbar)
 
 		private int _scrollOffset = 0;
 		private int _maxVisibleItems = 10;
 		private Point _debugMousePos;
+
 		public Color SelectedColor { get { return _selectedColor; } set { _selectedColor = value; } }
 		public int SelectedIndex { get { return _selectedIndex; } }
 		public string SelectedText { get { return _items.Count > 0 ? _items[_selectedIndex].Text : string.Empty; } }
 
 		public DropDownList(int x, int y, int width, int height, Texture2D pixel, SpriteFont font)
-						: base(x, y, width, height) {
+										: base(x, y, width, height) {
 			_pixel = pixel;
 			_font = font;
 
@@ -46,6 +50,11 @@ namespace TomcatMono.UI.Controls.Implementations {
 			_expanded = false;
 
 			BackgroundColor = Color.White;
+
+			// popup panel lives directly under this control
+			_popupPanel = new DrawPanel(0, height, width, 0, _pixel);
+			_popupPanel.Parent = this;
+			_popupPanel.Visible = false;
 		}
 
 		// bind a caller-owned string to this DropDownList
@@ -56,16 +65,17 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		public void ClearItems() {
-			this.ClearItems(false);
+			ClearItems(false);
 		}
 
-		// hard = true will *destroy* the existing list and invalidate all prior relationships.
-		// This includes selection index, popup geometry, and any external references to items.
-		// Use hard clear only when you intend to rebuild the list from scratch.
 		public void ClearItems(bool hard) {
+			// detach from hierarchy
+			foreach (var item in _items)
+				item.Parent = null;
+
 			switch (hard) {
-				case true: { this._items = new List<DropDownItem>(); break; }
-				case false: { this._items.Clear(); break; }
+				case true: { _items = new List<DropDownItem>(); break; }
+				case false: { _items.Clear(); break; }
 			}
 			_selectedIndex = 0;
 			_expanded = false;
@@ -79,6 +89,9 @@ namespace TomcatMono.UI.Controls.Implementations {
 			item.Width = Width;
 			item.Height = Height;
 			item.BackgroundColor = Color.White;
+
+			// participate in Control hierarchy under popup panel
+			item.Parent = _popupPanel;
 
 			_items.Add(item);
 
@@ -103,33 +116,30 @@ namespace TomcatMono.UI.Controls.Implementations {
 		private void SetSelectedIndex(int index) {
 			if (_items.Count == 0) { return; }
 
-			// restore old background
 			_items[_selectedIndex].BackgroundColor = Color.White;
 
 			_selectedIndex = index;
 
-			// apply selected color if expanded
 			if (_expanded) {
 				_items[_selectedIndex].BackgroundColor = _selectedColor;
 			}
 
-			// update bound value
 			if (_isBound) {
 				ref string target = ref _boundValue!();
 				target = _items[_selectedIndex].Text;
 			}
 		}
 
-		// expand the dropdown
 		private void Expand() {
 			_expanded = true;
+			_popupPanel.Visible = true;
 			if (_items.Count == 0 || _selectedIndex >= _items.Count || _selectedIndex < 0) { return; }
 			_items[_selectedIndex].BackgroundColor = _selectedColor;
 		}
 
-		// collapse the dropdown
 		private void Collapse() {
 			_expanded = false;
+			_popupPanel.Visible = false;
 			if (_items.Count == 0 || _selectedIndex >= _items.Count || _selectedIndex < 0) { return; }
 			_items[_selectedIndex].BackgroundColor = Color.White;
 		}
@@ -140,9 +150,16 @@ namespace TomcatMono.UI.Controls.Implementations {
 			int itemHeight = Height;
 			int visibleCount = _items.Count < _maxVisibleItems ? _items.Count : _maxVisibleItems;
 			int popupHeight = visibleCount * itemHeight;
-			_popupBounds = new Rectangle(rec.X, rec.Y + rec.Height, rec.Width, popupHeight);
+
+			// popupPanel is positioned directly under this control, in local coords
+			_popupPanel.SetBounds(0, rec.Height, rec.Width, popupHeight);
+
+			// cache absolute popup bounds for scissor + scrollbar
+			_popupBounds = _popupPanel.AbsoluteBounds;
+
 			RecalculateScrollBarRect();
 		}
+
 		private void RecalculateScrollBarRect() {
 			if (_items.Count > _maxVisibleItems) {
 				int barWidth = 10;
@@ -174,7 +191,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 			}
 
 			// expanded: click outside collapses
-			if (!_popupBounds.Contains(pos)) {
+			if (!_popupPanel.AbsoluteBounds.Contains(pos) && !AbsoluteBounds.Contains(pos)) {
 				if (input.LeftPressed() && !(input.IsDragging)) {
 					Collapse();
 					return true;
@@ -208,30 +225,30 @@ namespace TomcatMono.UI.Controls.Implementations {
 
 				Rectangle thumbRect = new Rectangle(barX, thumbY, barWidth, thumbHeight);
 
-				// --- STOP DRAGGING FIRST ---
+				// stop dragging
 				if (input.LeftReleased() && input.DragOwner == _scrollbarDragId) {
 					input.EndDrag(_scrollbarDragId);
 					return true;
 				}
 
-				// --- START DRAGGING ---
+				// start dragging
 				if (!input.IsDragging && input.LeftPressed() && thumbRect.Contains(pos)) {
 					input.BeginDrag(_scrollbarDragId, DraggingState.LeftMouse);
 					_dragStartOffset = _scrollOffset;
 					return true;
 				}
 
-				// --- DRAG MOVEMENT ---
+				// drag movement
 				if (input.IsDragging &&
-						input.IsDragOwner(_scrollbarDragId) &&
-						input.DragState == DraggingState.LeftMouse) {
+								input.IsDragOwner(_scrollbarDragId) &&
+								input.DragState == DraggingState.LeftMouse) {
 					int dy = input.DragDelta.Y;
 
 					float scrollRange = (float)(barHeight - thumbHeight);
 					float scrollRatio = dy / scrollRange;
 
 					int newOffset = _dragStartOffset +
-													(int)(scrollRatio * (_items.Count - _maxVisibleItems));
+																					(int)(scrollRatio * (_items.Count - _maxVisibleItems));
 
 					if (newOffset < 0) { newOffset = 0; }
 					if (newOffset > _items.Count - _maxVisibleItems) {
@@ -257,8 +274,12 @@ namespace TomcatMono.UI.Controls.Implementations {
 
 			for (int i = start; i < end; i++) {
 				DropDownItem item = _items[i];
-				item.Left = _popupBounds.X;
-				item.Top = _popupBounds.Y + ((i - start) * itemHeight);
+
+				// position relative to popup panel
+				item.Left = 0;
+				item.Top = (i - start) * itemHeight;
+				item.Width = _popupPanel.Width;
+				item.Height = itemHeight;
 
 				if (item.HandleInput(input)) {
 					SetSelectedIndex(i);
@@ -270,21 +291,22 @@ namespace TomcatMono.UI.Controls.Implementations {
 			return false;
 		}
 
-
 		public override void Draw(SpriteBatch spriteBatch) {
 			if (!Visible) { return; }
 
 			// collapsed
-			DropDownItem drawItem = _items.Count > 0 ? _items[_selectedIndex].Clone() : new DropDownItem("");
 			Rectangle rec = AbsoluteBounds;
-			drawItem.BackgroundColor = Color.White;
-			drawItem.SetBounds(rec.X, rec.Y, rec.Width, rec.Height);
-			drawItem.Draw(spriteBatch);
 
-			// border
+			spriteBatch.Draw(_pixel, rec, Color.White);
 			DrawBorder(spriteBatch, rec, _borderThickness, _borderColor);
 
-			// arrow
+			string text = SelectedText;
+			int nudgeUp = 2;
+			int padLeft = 10;
+			float textY = (rec.Y + (rec.Height - _font.LineSpacing) / 2f) - nudgeUp;
+			Vector2 textPos = new Vector2(rec.X + padLeft, textY);
+			spriteBatch.DrawString(_font, text, textPos, Color.Black);
+
 			int arrowAreaWidth = 24;
 			int arrowX = rec.Right - arrowAreaWidth + 4;
 			int arrowY = rec.Y + ((rec.Height - FontLibrary.Symbols.LineSpacing) / 2) + 2;
@@ -293,59 +315,52 @@ namespace TomcatMono.UI.Controls.Implementations {
 
 			// expanded popup
 			if (_expanded) {
-				Rectangle absPopup = _popupBounds;
+				Rectangle absPopup = _popupPanel.AbsoluteBounds;
 				Color scrollBarColor = new Color(0, 0, 0, 80);
 				Color scrollThumbColor = new Color(0, 0, 0, 160);
 
-				// clipping
 				Rectangle oldScissor = spriteBatch.GraphicsDevice.ScissorRectangle;
 				spriteBatch.End();
 				RasterizerState rs = new RasterizerState() { ScissorTestEnable = true };
 				spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, rs);
 				spriteBatch.GraphicsDevice.ScissorRectangle = absPopup;
 
-				// background + border
 				spriteBatch.Draw(_pixel, absPopup, Color.White);
 				DrawBorder(spriteBatch, absPopup, _borderThickness, _borderColor);
 
-				// visible items
 				int itemHeight = Height;
 				int start = _scrollOffset;
 				int end = _items.Count < _scrollOffset + _maxVisibleItems ? _items.Count : _scrollOffset + _maxVisibleItems;
 
 				for (int i = start; i < end; i++) {
 					DropDownItem item = _items[i];
-					item.SetBounds(absPopup.X, absPopup.Y + ((i - start) * itemHeight), absPopup.Width, itemHeight);
+
+					// local to popup panel
+					item.SetBounds(0, (i - start) * itemHeight, absPopup.Width, itemHeight);
 					item.Draw(spriteBatch);
 				}
 
-				// scrollbar (pseudo)
 				if (_items.Count > _maxVisibleItems) {
 					int barX = _scrollBarRect.X;
 					int barY = _scrollBarRect.Y;
 					int barWidth = _scrollBarRect.Width;
-					int barHeight = _scrollBarRect.Height; 
+					int barHeight = _scrollBarRect.Height;
 					_scrollBarRect = new Rectangle(barX, barY, barWidth, barHeight);
 
-					// draw track
 					spriteBatch.Draw(_pixel, new Rectangle(barX, barY, barWidth, barHeight), scrollBarColor);
 
-					// thumb height proportional to visible range
 					float ratio = (float)_maxVisibleItems / (float)_items.Count;
 					int thumbHeight = (int)(barHeight * ratio);
 					if (thumbHeight < 8) { thumbHeight = 8; }
 
-					// thumb position proportional to scroll offset
 					float offsetRatio = (float)_scrollOffset / (float)(_items.Count - _maxVisibleItems);
 					int thumbY = barY + (int)((barHeight - thumbHeight) * offsetRatio);
 
-					// draw thumb
 					spriteBatch.Draw(_pixel, new Rectangle(barX, thumbY, barWidth, thumbHeight), scrollThumbColor);
 				}
 
 				spriteBatch.Draw(_pixel, new Rectangle(_debugMousePos.X, _debugMousePos.Y, 2, 2), Color.Magenta);
 
-				// restore
 				spriteBatch.End();
 				spriteBatch.Begin();
 				spriteBatch.GraphicsDevice.ScissorRectangle = oldScissor;
@@ -353,13 +368,9 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 
 		private void DrawBorder(SpriteBatch spriteBatch, Rectangle rect, int thickness, Color color) {
-			// top
 			spriteBatch.Draw(_pixel, new Rectangle(rect.X, rect.Y, rect.Width, thickness), color);
-			// bottom
 			spriteBatch.Draw(_pixel, new Rectangle(rect.X, rect.Bottom - thickness, rect.Width, thickness), color);
-			// left
 			spriteBatch.Draw(_pixel, new Rectangle(rect.X, rect.Y, thickness, rect.Height), color);
-			// right
 			spriteBatch.Draw(_pixel, new Rectangle(rect.Right - thickness, rect.Y, thickness, rect.Height), color);
 		}
 	}
