@@ -13,14 +13,13 @@ namespace TomcatMono.UI.Controls {
 			_pixel = pixel;
 		}
 		public DrawPanel(Rectangle? virtualBounds, int left, int top, int width, int height, Texture2D pixel)
-				: base(virtualBounds,left, top, width, height) {
+				: base(virtualBounds, left, top, width, height) {
 			_pixel = pixel;
 		}
-
-		// NOTE:
-		// No Draw override.
-		// No layout override.
-		// DrawPanel is now a semantic Panel that *can* be used
-		// by derived classes to draw backgrounds or other visuals.
+		public override void Draw(SpriteBatch spriteBatch) {
+			if (!Visible) { return; }
+			spriteBatch.Draw(_pixel, AbsoluteBounds, BackgroundColor);
+			base.Draw(spriteBatch);
+		}
 	}
 }

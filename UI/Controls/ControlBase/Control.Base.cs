@@ -22,7 +22,8 @@ namespace TomcatMono.UI.Controls {
 		private AnchorType _anchorType;
 
 		private bool _visible;
-		private Color _backgroundColor = Color.SlateGray;
+		private Color _backgroundColor = Color.Silver;
+		private Color _textColor = Color.Black;
 		#endregion
 
 		#region Properties
@@ -37,67 +38,56 @@ namespace TomcatMono.UI.Controls {
 				return _virtualBounds.Value;
 			}
 		}
-
 		public Color BackgroundColor {
 			get => _backgroundColor;
 			set => _backgroundColor = value;
 		}
-
+		public Color TextColor {
+			get => _textColor;
+			set => _textColor = value;
+		}
 		public bool Visible {
 			get => _visible;
 			set => _visible = value;
 		}
-
 		public int Left {
 			get => _left;
 			set => SetBounds(value, _top, _width, _height);
 		}
-
 		public int Top {
 			get => _top;
 			set => SetBounds(_left, value, _width, _height);
 		}
-
 		public int Width {
 			get => _width;
 			set => SetBounds(_left, _top, value, _height);
 		}
-
 		public int Height {
 			get => _height;
 			set => SetBounds(_left, _top, _width, value);
 		}
-
 		public Rectangle Bounds => new Rectangle(_left, _top, _width, _height);
-
 		public virtual Rectangle AbsoluteBounds {
 			get {
 				if (_parent != null) {
 					Rectangle p = _parent.AbsoluteBounds;
 					return new Rectangle(p.X + _left, p.Y + _top, _width, _height);
 				}
-
 				if (_virtualBounds == null)
 					throw new TomcatUIVirtualBoundsException("Root control missing VirtualBounds.");
-
 				Rectangle v = _virtualBounds.Value;
 				return new Rectangle(v.X + _left, v.Y + _top, _width, _height);
 			}
 		}
-
 		public Control? Parent {
 			get => _parent;
 			set => SetParent(value);
 		}
-
 		public IReadOnlyList<Control> Children => _children;
-
 		public AnchorType AnchorType { get { return _anchorType; } set { _anchorType = value; } }
-
 		private void BoundsChanged() {
 			BoundsChangedHandler?.Invoke(this);
 		}
-
 		protected void SetBoundsChangedHandler(Action<Control> handler) {
 			BoundsChangedHandler = handler;
 		}
@@ -125,7 +115,9 @@ namespace TomcatMono.UI.Controls {
 
 		public virtual void Draw(SpriteBatch spriteBatch) {
 			for (int i = 0; i < _children.Count; i++)
-				_children[i].Draw(spriteBatch);
+				if (_children[i].Visible) {
+					_children[i].Draw(spriteBatch);
+				}
 		}
 
 		public virtual bool HandleInput(InputManager input) {
@@ -135,11 +127,6 @@ namespace TomcatMono.UI.Controls {
 
 			return false;
 		}
-		#endregion
-
-		#region Helpers
-		
-		
 		#endregion
 	}
 }

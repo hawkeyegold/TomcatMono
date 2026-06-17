@@ -12,9 +12,8 @@ namespace TomcatMono.UI.Controls.Implementations {
 		private bool _hovered;
 		private bool _pressed;
 
-		public Color HoverColor = new Color(70, 70, 70);
-		public Color PressedColor = new Color(30, 30, 30);
-		public Color TextColor = Color.White;
+		public Color HoverColor = Color.Beige;
+		public Color PressedColor = Color.White;
 		
 		public event Action<Button>? OnClick;
 
@@ -25,6 +24,9 @@ namespace TomcatMono.UI.Controls.Implementations {
 			_pixel = pixel;
 			_font = font;
 			_text = text;
+			_hovered= false;
+			_pressed= false;
+			BackgroundColor = Color.LightSteelBlue;
 		}
 
 		public override bool HandleInput(InputManager input) {
@@ -38,6 +40,10 @@ namespace TomcatMono.UI.Controls.Implementations {
 				_pressed = true;
 			}
 
+			if (_pressed && !AbsoluteBounds.Contains(pos) && !input.LeftMouseDown()) {
+				_pressed = false;
+			}
+
 			// Mouse released
 			if (_pressed && input.LeftClicked(AbsoluteBounds)) {
 				_pressed = false;
@@ -47,7 +53,6 @@ namespace TomcatMono.UI.Controls.Implementations {
 					return true;
 				}
 			}
-
 			return false;
 		}
 
@@ -55,11 +60,14 @@ namespace TomcatMono.UI.Controls.Implementations {
 			if (!Visible) { return; }
 
 			Color bg = BackgroundColor;
-			if (_pressed) bg = PressedColor;
-			else if (_hovered) bg = HoverColor;
+			if (_hovered) { bg = HoverColor; }
+			if (_pressed) { bg = PressedColor; }
 
 			// Background
 			spriteBatch.Draw(_pixel, AbsoluteBounds, bg);
+
+			// Border
+			DrawBorder(spriteBatch);
 
 			// Text centered
 			Vector2 size = _font.MeasureString(_text);
@@ -67,11 +75,18 @@ namespace TomcatMono.UI.Controls.Implementations {
 					AbsoluteBounds.X + (AbsoluteBounds.Width - size.X) / 2,
 					AbsoluteBounds.Y + (AbsoluteBounds.Height - size.Y) / 2
 			);
-
 			spriteBatch.DrawString(_font, _text, pos, TextColor);
 
 			// Draw children (if any)
 			base.Draw(spriteBatch);
+		}
+		private void DrawBorder(SpriteBatch spriteBatch) {
+			Rectangle r = AbsoluteBounds;
+			int t = 1; // border thickness
+			spriteBatch.Draw(_pixel, new Rectangle(r.X, r.Y, t, r.Height), Color.DarkGray);
+			spriteBatch.Draw(_pixel, new Rectangle(r.X, r.Y, r.Width, t), Color.DarkGray);
+			spriteBatch.Draw(_pixel, new Rectangle(r.Right - t, r.Y, t, r.Height), TextColor);
+			spriteBatch.Draw(_pixel, new Rectangle(r.X, r.Bottom - t, r.Width, t), TextColor);
 		}
 	}
 }

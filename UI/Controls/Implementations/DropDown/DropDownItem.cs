@@ -16,7 +16,6 @@ namespace TomcatMono.UI.Controls.Implementations {
 
 		public string Text { get { return _text; } set { _text = value; } }
 		public bool Hovered { get { return _hovered; } set { _hovered = value; } }
-		public Color TextColor { get => _textColor; set => _textColor = value; }
 		public Color HoverTextColor { get => _hoverTextColor; set => _hoverTextColor = value; }
 		public Color HoverBackgroundColor { get => _hoverBackgroundColor; set => _hoverBackgroundColor = value; }
 

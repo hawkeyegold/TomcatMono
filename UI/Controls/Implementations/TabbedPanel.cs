@@ -40,11 +40,11 @@ namespace TomcatMono.UI.Controls.Implementations {
 			get => _tabHeight;
 			set {
 				if (value < 0) value = 0;
+				int delta = value - _tabHeight;
 				_tabHeight = value;
-
-				// Re-layout internal panels
 				_tabsPanel.Height = _tabHeight;
-				ApplyContentArea();
+				_contentPanel.Top = _tabHeight;
+				_contentPanel.Height -= delta;
 			}
 		}
 		public int TabSpacing { get { return _tabSpacing; } set { _tabSpacing = value; } }
@@ -54,7 +54,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 
 			_selectedIndex = -1;
 
-			_tabHeight = 24;
+			_tabHeight = 30;
 			_tabSpacing = 2;
 			_tabPadding = 8;
 
@@ -71,7 +71,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 			_tabsPanel.AnchorType = AnchorType.Top | AnchorType.Left | AnchorType.Right;
 
 			// --- Content Panel ---
-			_contentPanel = new DrawPanel(0, _tabHeight + _tabSpacing, width, height - (_tabHeight + _tabSpacing), _pixel);
+			_contentPanel = new DrawPanel(0, _tabHeight, width, height - _tabHeight, _pixel);
 			_contentPanel.Parent = this;
 			_contentPanel.AnchorType = AnchorType.Top | AnchorType.Bottom | AnchorType.Left | AnchorType.Right;
 
@@ -81,9 +81,11 @@ namespace TomcatMono.UI.Controls.Implementations {
 			// 1. Create the TabPage and get its DrawPanel page
 			TabPage tab = new TabPage(text);
 			DrawPanel page = tab.Page;
-
 			// Parent the page correctly
 			page.Parent = _contentPanel;
+			page.Visible = false;
+			page.SetBounds(0, 0, _contentPanel.Width, _contentPanel.Height); 
+			page.AnchorType = AnchorType.Left | AnchorType.Top | AnchorType.Right | AnchorType.Bottom;
 
 			// 2. Compute tab width cleanly
 			int width;
@@ -101,14 +103,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 			int newTabLeft = GetTabsTotalWidth();
 
 			// 4. Create the tab header Label
-			Label header = new Label(
-					newTabLeft,
-					_tabSpacing,
-					width,
-					_tabHeight,
-					_font,
-					text
-			);
+			Label header = new Label(newTabLeft, _tabSpacing, width, _tabHeight, _font, text);
 			header.Parent = _tabsPanel;
 			header.AnchorType = AnchorType.Top | AnchorType.Left;
 			header.Alignment = TextAlignment.Center;
@@ -119,22 +114,19 @@ namespace TomcatMono.UI.Controls.Implementations {
 			// 5. Add tab to list
 			_tabs.Add(tab);
 
-			// 6. Layout the page inside the content area
-			Rectangle content = ComputeContentArea();
-			page.SetBounds(content.X, content.Y, content.Width, content.Height);
-
 			// 7. Only select the first tab — never override existing selection
-			if (_tabs.Count == 1) {
-				SetSelectedIndex(0);
-			}
+			if (_tabs.Count == 1) {	SetSelectedIndex(0); }
 
 			return tab;
 		}
-		public void SetFooter(DrawPanel footer) {
-			_footerPanel = footer;
-			_footerHeight = footer.Height;
-			footer.Parent = this;
-			ApplyContentArea();
+		public DrawPanel AddFooter(int footerHeight) {
+			if (_footerPanel != null) { throw new InvalidOperationException("A footer already exists for TabbedPanel"); }
+			_footerHeight = footerHeight;
+			_footerPanel = new DrawPanel(0, this.Height - _footerHeight,this.Width,_footerHeight,_pixel);
+			_footerPanel.AnchorType=AnchorType.Bottom | AnchorType.Left | AnchorType.Right;
+			_footerPanel.Parent = this;
+			_contentPanel.Height-=_footerHeight;
+			return _footerPanel;
 		}
 		private int MeasureTabText(string text) {
 			Vector2 size = _font.MeasureString(text);
@@ -157,85 +149,6 @@ namespace TomcatMono.UI.Controls.Implementations {
 
 				tab.Selected = isSelected;
 				tab.Page.Visible = isSelected;
-			}
-		}
-		private Rectangle ComputeContentArea() {
-			int left = 0;
-			int top = _tabHeight + _tabSpacing;
-
-			int width = Width;
-			int height = Height - top;
-
-			if (_footerPanel != null) {
-				height -= _footerHeight;
-			}
-
-			if (height < 0) { height = 0; }
-
-			return new Rectangle(left, top, width, height);
-		}
-		private void ApplyContentArea() {
-			Rectangle area = ComputeContentArea();
-
-			// Resize all pages
-			for (int i = 0; i < _tabs.Count; i++) {
-				DrawPanel panel = _tabs[i].Page;
-				panel.SetBounds(area.X, area.Y, area.Width, area.Height);
-			}
-
-			// Resize footer
-			if (_footerPanel != null) {
-				_footerPanel.SetBounds(
-						0,
-						Height - _footerHeight,
-						Width,
-						_footerHeight
-				);
-			}
-		}
-		public override void Update(GameTime gameTime) {
-			if (!Visible) { return; }
-
-			if (_selectedIndex >= 0 && _selectedIndex < _tabs.Count) {
-				_tabs[_selectedIndex].Page.Update(gameTime);
-			}
-		}
-		public override void Draw(SpriteBatch spriteBatch) {
-			if (!Visible)
-				return;
-
-			// 1. Draw the full TabbedPanel background (entire control area-tabsheader)
-			Rectangle fullBounds = AbsoluteBounds;
-			Rectangle drawBounds= new Rectangle(
-				fullBounds.Left, 
-				fullBounds.Top+_tabHeight, 
-				fullBounds.Width, 
-				fullBounds.Height
-			);
-			spriteBatch.Draw(_pixel, drawBounds, BackgroundColor);
-
-			// 2. Draw tab headers (background + text)
-			for (int i = 0; i < _tabs.Count; i++) {
-				TabPage tab = _tabs[i];
-				Label header = tab.HeaderLabel;
-
-				Rectangle rect = header.AbsoluteBounds;
-
-				Color bg = (i == _selectedIndex)
-						? _selectedTabColor
-						: _unselectedTabColor;
-
-				spriteBatch.Draw(_pixel, rect, bg);
-				header.Draw(spriteBatch);
-			}
-
-			// 3. Draw the content area background
-			//Rectangle contentArea = ComputeContentArea();
-			//spriteBatch.Draw(_pixel, contentArea, BackgroundColor);
-
-			// 4. Draw the selected page (on top of content background)
-			if (_selectedIndex >= 0 && _selectedIndex < _tabs.Count) {
-				_tabs[_selectedIndex].Page.Draw(spriteBatch);
 			}
 		}
 		public override bool HandleInput(InputManager input) {
@@ -261,7 +174,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 			if (_footerPanel != null && _footerPanel.HandleInput(input))
 				return true;
 
-			return false;
+			return base.HandleInput(input);
 		}
 		private int GetTabsTotalWidth() {
 			int result = 0;

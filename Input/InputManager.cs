@@ -85,6 +85,13 @@ namespace TomcatMono.Input {
 						 _previousState.RightButton == ButtonState.Pressed;
 		}
 
+		public bool LeftMouseDown() {
+			return _currentState.LeftButton == ButtonState.Pressed;
+		}
+		public bool RightMouseDown() {
+			return _currentState.RightButton == ButtonState.Pressed;
+		}
+
 		// --- Click gestures ---
 		public bool LeftClicked(Rectangle bounds) {
 			bool pressedInside =

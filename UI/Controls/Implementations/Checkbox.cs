@@ -5,6 +5,7 @@ using TomcatMono.Input;
 namespace TomcatMono.UI.Controls.Implementations {
 	public class Checkbox : Control {
 		public delegate ref bool RefBoolAccessor();
+		private RefBoolAccessor? _boundValue;
 
 		private readonly Texture2D _pixel;
 		private readonly SpriteFont _font;
@@ -16,11 +17,9 @@ namespace TomcatMono.UI.Controls.Implementations {
 		private int _spacing;
 
 		private bool _isBound;
-		private RefBoolAccessor? _boundValue;
 
 		public Color CheckedColor = Color.SteelBlue;
 		public Color UncheckedColor = Color.White;
-		public Color LabelColor = Color.White;
 
 		public CheckOreintation Orientation {
 			get => _orientation;
@@ -130,7 +129,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 				spriteBatch.Draw(_pixel, inner, CheckedColor);
 			}
 
-			spriteBatch.DrawString(_font, _labelText, labelPos, LabelColor);
+			spriteBatch.DrawString(_font, _labelText, labelPos, TextColor);
 		}
 	}
 

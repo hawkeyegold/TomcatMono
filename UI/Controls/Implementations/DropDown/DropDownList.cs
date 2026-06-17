@@ -7,6 +7,10 @@ using TomcatMono.Input;
 
 namespace TomcatMono.UI.Controls.Implementations {
 	public class DropDownList : Control {
+		public delegate ref string RefStringAccessor();
+		private RefStringAccessor? _boundValue;
+		private bool _isBound;
+
 		private readonly Texture2D _pixel;
 		private readonly SpriteFont _font;
 
@@ -25,10 +29,6 @@ namespace TomcatMono.UI.Controls.Implementations {
 		private Rectangle _scrollBarRect;
 		private readonly Guid _scrollbarDragId = Guid.NewGuid();
 		private int _dragStartOffset = 0;
-
-		public delegate ref string RefStringAccessor();
-		private RefStringAccessor? _boundValue;
-		private bool _isBound;
 
 		private Rectangle _popupBounds; // absolute popup bounds (for scissor + scrollbar)
 
