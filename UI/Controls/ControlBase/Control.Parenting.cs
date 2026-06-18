@@ -17,8 +17,11 @@
 
 			_parent = value;
 
-			if (_parent != null)
+			if (_parent != null) { 
 				_parent.AddChild(this);
+				PrivateSetAnchors();
+			}
+			
 		}
 
 		private void AddChild(Control? candidate) {

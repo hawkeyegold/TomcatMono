@@ -190,6 +190,12 @@ namespace TomcatMono.UI.Controls.Implementations {
 				return false;
 			}
 
+			// clicking the main control while expanded toggles closed
+			if (AbsoluteBounds.Contains(pos) && input.LeftPressed() && !input.IsDragging) {
+				Collapse();
+				return true;
+			}
+
 			// expanded: click outside collapses
 			if (!_popupPanel.AbsoluteBounds.Contains(pos) && !AbsoluteBounds.Contains(pos)) {
 				if (input.LeftPressed() && !(input.IsDragging)) {
@@ -301,17 +307,28 @@ namespace TomcatMono.UI.Controls.Implementations {
 			DrawBorder(spriteBatch, rec, _borderThickness, _borderColor);
 
 			string text = SelectedText;
-			int nudgeUp = 2;
 			int padLeft = 10;
-			float textY = (rec.Y + (rec.Height - _font.LineSpacing) / 2f) - nudgeUp;
+			float textY = (rec.Y + (rec.Height - _font.LineSpacing) / 2f);
 			Vector2 textPos = new Vector2(rec.X + padLeft, textY);
 			spriteBatch.DrawString(_font, text, textPos, Color.Black);
 
-			int arrowAreaWidth = 24;
-			int arrowX = rec.Right - arrowAreaWidth + 4;
-			int arrowY = rec.Y + ((rec.Height - FontLibrary.Symbols.LineSpacing) / 2) + 2;
+			float arrowScale = 0.8f;
+			int arrowAreaWidth = 22;
+			int arrowX = rec.Right - arrowAreaWidth+4;
+			int arrowY = rec.Y + ((rec.Height - FontLibrary.Symbols.LineSpacing) / 2) + 4;
 			string arrowGlyph = _expanded ? ((char)9650).ToString() : ((char)9660).ToString();
-			spriteBatch.DrawString(FontLibrary.Symbols, arrowGlyph, new Vector2(arrowX, arrowY), _borderColor);
+			//spriteBatch.DrawString(FontLibrary.Symbols, arrowGlyph, new Vector2(arrowX, arrowY), _borderColor);
+			spriteBatch.DrawString(
+				FontLibrary.Symbols,
+				arrowGlyph,
+				new Vector2(arrowX, arrowY),
+				_borderColor,
+				0f,
+				Vector2.Zero,
+				arrowScale,
+				SpriteEffects.None,
+				0f
+			);
 
 			// expanded popup
 			if (_expanded) {

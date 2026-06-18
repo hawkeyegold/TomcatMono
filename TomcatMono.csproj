@@ -8,7 +8,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Folder Include="Persist\" />
+		<Folder Include="_StructureDump\" />
 	</ItemGroup>
 
   <ItemGroup>

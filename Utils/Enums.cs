@@ -5,8 +5,10 @@
 		Left = 1,
 		Right = 2,
 		Top = 4,
-		Bottom = 8
+		Bottom = 8,
+		Center = 16
 	}
+
 	public enum TextAlignment {
 		TopLeft,
 		Center

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TomcatMono.Input;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TomcatMono.UI.Controls {
 	public abstract partial class Control {
@@ -84,7 +83,28 @@ namespace TomcatMono.UI.Controls {
 			set => SetParent(value);
 		}
 		public IReadOnlyList<Control> Children => _children;
-		public AnchorType AnchorType { get { return _anchorType; } set { _anchorType = value; } }
+		public AnchorType AnchorType {
+			get => _anchorType;
+			set {
+				AnchorType old = _anchorType;
+
+				// Normalize Center override
+				if ((value & AnchorType.Center) != 0)
+					_anchorType = AnchorType.Center;
+				else
+					_anchorType = value;
+
+				bool oldWasCenter = old == AnchorType.Center;
+				bool newIsCenter = _anchorType == AnchorType.Center;
+
+				// Only recapture when switching between Center and non-Center modes
+				if (oldWasCenter != newIsCenter) {
+					// This will fail quietly if no frame exists yet
+					PrivateSetAnchors();
+				}
+			}
+		}
+
 		private void BoundsChanged() {
 			BoundsChangedHandler?.Invoke(this);
 		}
@@ -99,14 +119,10 @@ namespace TomcatMono.UI.Controls {
 
 		protected Control(Rectangle? virtualBounds, int left, int top, int width, int height) {
 			_virtualBounds = virtualBounds;
-			_left = left;
-			_top = top;
-			_width = width;
-			_height = height;
 			_anchorType = AnchorType.None;
 			_visible = true;
 			_children = new List<Control>();
-			//ApplyAnchoring();
+			SetBounds(left, top, width, height, virtualBounds!=null);
 		}
 		#endregion
 

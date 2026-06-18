@@ -13,21 +13,28 @@ namespace TomcatMono.UI.Controls {
 		}
 
 		public void SetBounds(int left, int top, int width, int height) {
+			SetBounds(left, top, width, height, true);
+		}
+		public void SetBounds(int left, int top, int width, int height, bool setAnchors) {
 			bool changed = _left != left || _top != top || _width != width || _height != height;
 
 			_left = left;
 			_top = top;
 			_width = width;
 			_height = height;
-			InternalBoundsChanged(changed);
+			InternalBoundsChanged(changed, setAnchors);
 		}
-
 		private void InternalBoundsChanged(bool changed) {
+			InternalBoundsChanged(changed, true);
+		}
+		private void InternalBoundsChanged(bool changed, bool setAnchors) {
 			if (changed) {
 				BoundsChanged(); // this is probably not going to be needed most of the time in future implementations, we'll leave it in case we do
-				PrivateSetAnchors();
-				for (int i = 0; i < Children.Count; i++) {
-					_children[i].ApplyAnchoring();
+				if (setAnchors && !_anchorRect.IsEmpty) {
+					PrivateSetAnchors();
+					for (int i = 0; i < Children.Count; i++) {
+						_children[i].ApplyAnchoring();
+					}
 				}
 			}
 		}
@@ -42,22 +49,54 @@ namespace TomcatMono.UI.Controls {
 			_height= height;
 		}
 		private void PrivateSetAnchors() {
-			AnchorRect anchorRect = new AnchorRect {
+			if (_parent == null && _virtualBounds == null)
+				return; // fail quietly, leave IsEmpty as-is
+
+			Rectangle parentBounds = _parent != null ? _parent.Bounds : VirtualBounds;
+
+			// --- Center anchoring capture ---
+			if (_anchorType == AnchorType.Center) {
+				int parentCenterX = parentBounds.Width / 2;
+				int parentCenterY = parentBounds.Height / 2;
+
+				_anchorRect = new AnchorRect {
+					Left = _left - parentCenterX,   // X offset from center
+					Top = _top - parentCenterY,   // Y offset from center
+					Right = _width,                  // store width
+					Bottom = _height,                  // store height
+					IsEmpty = false
+				};
+				return;
+			}
+
+			// --- Default edge-based anchoring capture ---
+			_anchorRect = new AnchorRect {
 				Left = _left,
 				Top = _top,
 				Right = _left + _width,
-				Bottom = _top + _height
+				Bottom = _top + _height,
+				IsEmpty=false
 			};
-			_anchorRect = anchorRect;	
 		}
-		private Rectangle ComputeBounds(Rectangle container) {
-			// TODO
-			return Rectangle.Empty;
-		}
-		private void SetAnchorRect(Rectangle parentBounds) { } //dont think we need this, but we'll leave the stub for now
+
 		private void ApplyAnchoring() {
+			if (_anchorRect.IsEmpty || _anchorType == AnchorType.None) { return; }
+
 			Rectangle parentBounds = _parent!=null?_parent.Bounds:VirtualBounds;
 			BoundsRect bounds = new BoundsRect(_left, _top, _width, _height);
+
+			if (_anchorType == AnchorType.Center) {
+				int parentCenterX = parentBounds.Width / 2;
+				int parentCenterY = parentBounds.Height / 2;
+
+				bounds.Left = parentCenterX + _anchorRect.Left;
+				bounds.Top = parentCenterY + _anchorRect.Top;
+
+				// Width/Height come from the current bounds (not mutated)
+				// because Center anchoring does not stretch.
+				PrivateSetBounds(bounds.Left, bounds.Top, bounds.Width, bounds.Height);
+				return;
+			}
 
 			// --- Horizontal mutation ---
 			if (_anchorType.HasFlag(AnchorType.Left) && !_anchorType.HasFlag(AnchorType.Right)) {

@@ -7,12 +7,17 @@ using TomcatMono.Input;
 namespace TomcatMono.UI.Controls.Implementations {
 	public class Label : Control {
 		private readonly SpriteFont _font;
+		private float _scale = 1f;
 		private const int MaxLabelLength = 64;
 		private readonly char[] _textBuffer = new char[MaxLabelLength];
 		private string _cachedText="";
 		private bool _autoSize;
 		private Vector2 _measuredSize;
 
+		public float Scale {
+			get => _scale;
+			set => _scale = value;
+		}
 		public string Text {
 			get => _cachedText;
 			set {
@@ -99,8 +104,10 @@ namespace TomcatMono.UI.Controls.Implementations {
 			string text = _cachedText;
 			Rectangle abs = AbsoluteBounds;
 
-			// Use cached size only when AutoSize is true
-			Vector2 size = AutoSize ? _measuredSize : _font.MeasureString(text);
+			// Measure at scale 1.0
+			Vector2 baseSize = AutoSize ? _measuredSize : _font.MeasureString(text);
+			Vector2 scaledSize = baseSize * _scale;
+
 			float x, y;
 
 			switch (Alignment) {
@@ -111,19 +118,17 @@ namespace TomcatMono.UI.Controls.Implementations {
 
 				case TextAlignment.Center:
 				default:
-					x = abs.X + (abs.Width - size.X) / 2f;
-					y = abs.Y + (abs.Height - size.Y) / 2f;
+					x = abs.X + (abs.Width - scaledSize.X) / 2f;
+					y = abs.Y + (abs.Height - scaledSize.Y) / 2f;
 					break;
 			}
 
-			// Pixel snapping integrated into alignment
-			x = (float)System.Math.Round(x);
-			y = (float)System.Math.Round(y);
+			x = (float)Math.Round(x);
+			y = (float)Math.Round(y);
 
 			Vector2 pos = new Vector2(x, y);
 
-			spriteBatch.DrawString(_font, text, pos, TextColor);
+			spriteBatch.DrawString(_font,text,pos,TextColor,0f,Vector2.Zero,_scale,SpriteEffects.None,0f);
 		}
-
 	}
 }

@@ -1,9 +1,11 @@
 ﻿namespace TomcatMono {
 	public struct AnchorRect {
+		public AnchorRect() {	}
 		public int Left;
 		public int Top;
 		public int Right;
 		public int Bottom;
+		public bool IsEmpty=true;
 	}
 	public struct BoundsRect {
 		public int Left;

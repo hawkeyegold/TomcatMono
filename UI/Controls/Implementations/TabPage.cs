@@ -8,6 +8,7 @@ public sealed class TabPage {
 	private int _dynamicWidth;
 	private int _fixedWidth;
 	private DrawPanel _page;
+	private DrawPanel _tabHandle;
 	private bool _selected;
 	//private Label _headerLabel;
 
@@ -18,14 +19,16 @@ public sealed class TabPage {
 	public int DynamicWidth { get { return _dynamicWidth; } internal set { _dynamicWidth = value; } }
 
 	public DrawPanel Page { get { return _page; } set { _page = value; } }
+	public DrawPanel TabHandle { get { return _tabHandle; } set { _tabHandle = value; } }
 	public bool Selected { get { return _selected; } internal set { _selected = value; } }
-	public TabPage(string text) : this(text, null) { }
-	public TabPage(string text, DrawPanel? panel) {
+	public TabPage(string text) : this(text, null, null) { }
+	public TabPage(string text, DrawPanel? pagePanel, DrawPanel? handlePanel) {
 		_text = text;
 		_autoSize = true;
 		_dynamicWidth = 0;
 		_fixedWidth = 50;
 		_selected = false;
-		_page = (panel != null) ? panel : new DrawPanel();
+		_page = (pagePanel != null) ? pagePanel : new DrawPanel();
+		_tabHandle = (handlePanel != null) ? handlePanel : new DrawPanel();
 	}
 }

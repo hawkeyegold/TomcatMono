@@ -55,7 +55,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 			_selectedIndex = -1;
 
 			_tabHeight = 30;
-			_tabSpacing = 2;
+			_tabSpacing = 3;
 			_tabPadding = 8;
 
 			_font = FontLibrary.NormalFont;
@@ -68,6 +68,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 			// --- Tabs Panel ---
 			_tabsPanel = new DrawPanel(0, 0, width, _tabHeight, _pixel);
 			_tabsPanel.Parent = this;
+			_tabsPanel.DrawBackground = false;
 			_tabsPanel.AnchorType = AnchorType.Top | AnchorType.Left | AnchorType.Right;
 
 			// --- Content Panel ---
@@ -79,45 +80,51 @@ namespace TomcatMono.UI.Controls.Implementations {
 		}
 		public TabPage AddTab(string text) {
 			// 1. Create the TabPage and get its DrawPanel page
-			TabPage tab = new TabPage(text);
-			DrawPanel page = tab.Page;
+			TabPage tabPage = new TabPage(text);
+			DrawPanel drawPage = tabPage.Page;
 			// Parent the page correctly
-			page.Parent = _contentPanel;
-			page.Visible = false;
-			page.SetBounds(0, 0, _contentPanel.Width, _contentPanel.Height); 
-			page.AnchorType = AnchorType.Left | AnchorType.Top | AnchorType.Right | AnchorType.Bottom;
+			drawPage.Parent = _contentPanel;
+			drawPage.Visible = false;
+			drawPage.SetBounds(0, 0, _contentPanel.Width, _contentPanel.Height); 
+			drawPage.AnchorType = AnchorType.Left | AnchorType.Top | AnchorType.Right | AnchorType.Bottom;
 
 			// 2. Compute tab width cleanly
 			int width;
-			if (tab.AutoSize) {
+			if (tabPage.AutoSize) {
 				int measured = MeasureTabText(text);
 				width = measured + (_tabPadding * 2);
 			}
 			else {
-				width = tab.FixedWidth;
+				width = tabPage.FixedWidth;
 			}
 
-			tab.DynamicWidth = width;
+			tabPage.DynamicWidth = width;
 
 			// 3. Compute the new tab's Left by rolling up existing widths
 			int newTabLeft = GetTabsTotalWidth();
 
 			// 4. Create the tab header Label
-			Label header = new Label(newTabLeft, _tabSpacing, width, _tabHeight, _font, text);
-			header.Parent = _tabsPanel;
-			header.AnchorType = AnchorType.Top | AnchorType.Left;
-			header.Alignment = TextAlignment.Center;
+			DrawPanel tab = new DrawPanel(newTabLeft, 0, width, _tabHeight, _pixel);
+			tabPage.TabHandle = tab;
+			tab.Parent = _tabsPanel;
+			tab.AnchorType = AnchorType.Top | AnchorType.Left;
+			tab.BackgroundColor = this._unselectedTabColor;
+
+			Label tabLabel = new Label(0, _tabSpacing, width, _tabHeight, _font, text);
+			tabLabel.Parent = tab;
+			tabLabel.Alignment = TextAlignment.Center;
+			tabLabel.TextColor = Color.White;
 
 			// Store the label on the TabPage
-			tab.HeaderLabel = header;
+			tabPage.HeaderLabel = tabLabel;
 
 			// 5. Add tab to list
-			_tabs.Add(tab);
+			_tabs.Add(tabPage);
 
 			// 7. Only select the first tab — never override existing selection
 			if (_tabs.Count == 1) {	SetSelectedIndex(0); }
 
-			return tab;
+			return tabPage;
 		}
 		public DrawPanel AddFooter(int footerHeight) {
 			if (_footerPanel != null) { throw new InvalidOperationException("A footer already exists for TabbedPanel"); }
@@ -149,6 +156,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 
 				tab.Selected = isSelected;
 				tab.Page.Visible = isSelected;
+				tab.TabHandle.BackgroundColor = isSelected?this._selectedTabColor:this._unselectedTabColor;
 			}
 		}
 		public override bool HandleInput(InputManager input) {
@@ -182,7 +190,7 @@ namespace TomcatMono.UI.Controls.Implementations {
 			for (int i = 0; i < _tabs.Count; i++) {
 				result += _tabs[i].DynamicWidth;
 
-				if (i < _tabs.Count - 1) {
+				if (i < _tabs.Count) {
 					result += _tabSpacing;
 				}
 			}
